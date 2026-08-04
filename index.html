@@ -91,8 +91,8 @@
     width:100%; border:1px solid var(--line); border-radius:5px; padding:5px 6px; font-size:13px; background:var(--input-bg);
   }
   textarea.note {
-    resize: vertical; /* Kullanıcının kutuyu köşesinden aşağı doğru uzatabilmesini sağlar */
-    font-family: inherit; /* Yazı tipinin formun kalanıyla aynı kalmasını sağlar */
+    resize: vertical;
+    font-family: inherit;
     line-height: 1.4;
     min-height: 32px;
   }
@@ -179,15 +179,12 @@
           <th style="width:70px;">İşlem</th>
         </tr>
       </thead>
-      <tbody id="customTbody">
-        <!-- Özel ürün satırları buraya eklenecek -->
-      </tbody>
+      <tbody id="customTbody"></tbody>
     </table>
     <div style="padding: 12px; background: #fff; border: 1px solid var(--line); border-top: none; border-radius: 0 0 8px 8px; text-align: center;">
       <button class="btn add" onclick="addCustomRow()">+ Listede Olmayan Ürün Ekle</button>
     </div>
   </section>
-  <!-- BİTİŞ -->
 
   <footer class="summary">
     <div>
@@ -212,18 +209,34 @@
 </div>
 
 <script>
-// ÜRÜN BAZLI ÖZEL SEÇENEKLER LİSTESİ (Buraya dilediğin gibi ürün ekleyebilirsin)
+// ÜRÜN BAZLI ÖZEL SEÇENEKLER LİSTESİ (Sadece burada tanımlanan ürünlerde özel açılır menü çıkacaktır)
 const CUSTOM_PRODUCT_OPTIONS = {
   "TOR.1310": { type: "single", options: ["0.035", "0.050"] },
   "TOR.1330": { type: "single", options: ["0.035", "0.050"] },
   "ZD19-9159": { type: "single", options: ["25mm", "31mm"] },
   "ZD19-9619": { type: "single", options: ["R25", "R40","R50"] },
   "ZD19-9273": { type: "single", options: ["R25", "R40","R50"] },
+  "004683": { type: "single", options: ["A1", "A2", "A3", "A3.5", "A4", "AE", "AO1", "AO2", "AO3", "B1", "B2", "BW", "CV", "CVD", "JE", "XBW"] },
   "Y3203": { type: "single", options: ["SX","S1","S2","F1","F2","F3","Asorti (SX 19mm,S1,S2,F1,F2,F3)"] },
   "Y3205": { type: "single", options: ["SX","S1","S2","F1","F2","F3","Asorti (SX 19mm,S1,S2,F1,F2,F3)"] },
   "ZD19-9047": { type: "single", options: ["Gold", "Blue"] },
   "ZD19-9540" : { type: "single", options: ["F1", "F2","F3","Asorti (F1-F3)"] },
-  
+  "ZIM.637" : { type: "single", options: ["6", "8","10","15"] },
+  "ZD19-9173/1159": { type: "single", options: ["A1", "A2", "A3", "A3.5", "A4", "A5", "A6", "AO1", "AO2", "AO3", "JE", "AE", "BW", "BOW"]},
+  "900978": { type: "single", options: ["DD", "DE", "LD", "LE", "MD", "ML", "U"]},
+  "ZD19-9562" :{ type: "single", options: ["A1", "A2", "A3", "A3.5", "B1", "B2"]},
+  "ZD19-9142" :{ type: "single", options: ["A2", "A3", "A3.5", "B2"]},
+  "8876" :{ type: "single", options: ["A1","A2", "A3", "A3.5","A4", "B2","C3" ,"Cv","OA3" ]},
+  "759081" :{ type: "single", options: ["IVA","IVB","IVW" ]},
+  "İVC.0006" :{ type: "single", options: ["A1","A2","DENTİN A2","A3","A3.5","DENTİN A3.5","B1","B2","BLEACH L","BLEACH XL" ]},
+  "ZIM.914" :{ type: "single", options: ["MEDİUM DENTİN","UNİVERSAL DENTİN" ]},
+  "ZIM.328": { type: "single", options: ["A1", "A2", "A3", "A3.5", "A4", "AO2", "AO3", "B1", "B2", "C2", "TW"]},
+  "ZIM.932": { type: "single", options: ["1", "2", "3", "4", "5", "6"] },
+  "ZIM.320": { 
+    type: "double", 
+    lengths: ["ÖN", "ARKA"], 
+    sizes: ["XBW", "BW", "A1", "A2", "A3", "A3.5", "A4", "B1", "B2", "B3", "C3", "CV", "CVD"] 
+  },
   "ZD19-9098": { 
     type: "double", 
     lengths: ["25mm/.04", "25mm/.06", "31mm/.04", "31mm/.06"], 
@@ -242,85 +255,33 @@ const CUSTOM_PRODUCT_OPTIONS = {
   "SPG00025": { 
     type: "double", 
     lengths: [".02 Açılı", ".04 Açılı", ".06 Açılı"], 
-    sizes: ["No:15", "No:20", "No:25", "No:30", "No:35", "No:40", "15-40 Asorti"] 
+    sizes: ["No:15", "No:20", "No:25", "No:30", "No:35", "No:40", "15-40 Asorti", "45-80 Asorti"] 
   },
   "SPİ00025": { 
     type: "double", 
     lengths: [".02 Açılı", ".04 Açılı", ".06 Açılı"], 
-    sizes: ["No:15", "No:20", "No:25", "No:30", "No:35", "No:40", "15-40 Asorti"] 
+    sizes: ["No:15", "No:20", "No:25", "No:30", "No:35", "No:40", "15-40 Asorti","45-80 Asorti"] 
+  },
+  "ZD19-9207": { 
+    type: "triple", 
+    types: ["K", "H"], 
+    lengths: ["25mm", "31mm"], 
+    sizes: ["15-40", "45-80", "6", "8", "10", "15", "20", "25", "30", "35", "40"] 
   }
+
 };
+const a1a2a3Codes = ["ZIM.229", "ZD19-9501", "ZIM.328", "43", "SPI0006", "2026A", "Y2169", "ZD19-9578", "ZIM.879"];
 
-// Bu fonksiyon listedeki kodları tarar ve uygun olanları dropdown'a çevirir
-function applyCustomDropdowns() {
-  document.querySelectorAll('tr.main-row, tr.variant-row').forEach(tr => {
-    const specTd = tr.querySelector('td:nth-child(6)');
-    if (specTd && specTd.querySelector('select.custom-dropdown')) return; 
+a1a2a3Codes.forEach(code => {
+  CUSTOM_PRODUCT_OPTIONS[code] = { type: "single", options: ["A1", "A2", "A3"] };
+});
 
-    let code = "";
-    const codeCell = tr.querySelector('.code');
-    if (codeCell && codeCell.textContent.trim() !== "") {
-      code = codeCell.textContent.trim();
-    } else {
-      let prevRow = tr.previousElementSibling;
-      while (prevRow) {
-        const prevCodeCell = prevRow.querySelector('.code');
-        if (prevCodeCell && prevCodeCell.textContent.trim() !== "") {
-          code = prevCodeCell.textContent.trim();
-          break;
-        }
-        prevRow = prevRow.previousElementSibling;
-      }
-    }
-
-    // Eğer listede bu ürün kodu varsa kuralları uygula
-    if (CUSTOM_PRODUCT_OPTIONS[code]) {
-      const itemConfig = CUSTOM_PRODUCT_OPTIONS[code];
-      
-      if (specTd && (specTd.querySelector('input') || specTd.querySelector('select'))) {
-        
-        // 1. DURUM: Tekli Dropdown (Örn: TOR kodları için)
-        if (itemConfig.type === "single") {
-          let optHtml = itemConfig.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
-          specTd.innerHTML = `
-            <select class="spec custom-dropdown">
-              <option value=""></option>
-              ${optHtml}
-            </select>
-          `;
-        } 
-        // 2. DURUM: İkili Dropdown (Kanal eğeleri için Boy ve Numara yan yana)
-        else if (itemConfig.type === "double") {
-          let lengthOpts = itemConfig.lengths.map(l => `<option value="${l}">${l}</option>`).join('');
-          let sizeOpts = itemConfig.sizes.map(s => `<option value="${s}">${s}</option>`).join('');
-          
-          specTd.innerHTML = `
-            <div style="display: flex; gap: 4px;">
-              <select class="spec custom-dropdown" style="flex: 1;" title="Boy / Açı">
-                <option value="">Boy Seç</option>
-                ${lengthOpts}
-              </select>
-              <select class="spec custom-dropdown" style="flex: 1;" title="Numara">
-                <option value="">No Seç</option>
-                ${sizeOpts}
-              </select>
-            </div>
-          `;
-        }
-      }
-    }
-  });
-}
-
-// Sayfa yüklendiğinde çalıştır
-window.addEventListener('DOMContentLoaded', applyCustomDropdowns);
 const DATA = [
   {
     "cat": "KOMPOZİT DOLGU MADDELERİ",
     "items": [
       {"code": "ZIM.229", "name": "CAVEX QUADRANT KOMPOZİT", "unit": "ADET"},
       {"code": "ZD19-9501", "name": "DENTSPLY NEO SPECTRA TEK TÜP", "unit": "ADET"},
-      {"code": "000255", "name": "DİATEMP", "unit": "ADET"},
       {"code": "ZD19-9173/1159", "name": "GC A-CHORD TEK TÜP", "unit": "ADET"},
       {"code": "900978", "name": "GC ESSENTİA", "unit": "ADET"},
       {"code": "ZIM.320", "name": "GC G-AENİAL TEK TÜP", "unit": "ADET"},
@@ -340,7 +301,7 @@ const DATA = [
       {"code": "Y2169", "name": "İMİCRLY NOVA COMPO C KOMPOZİT TEK", "unit": "ADET"},
       {"code": "2012", "name": "İMİCRYL FİSSURED NOVA 1x2.5GR TEKTÜP", "unit": "ADET"},
       {"code": "İMİ.2038", "name": "İMİCRYL NOVA COMPOMER 20 X 0,25", "unit": "ADET"},
-      {"code": "2038", "name": "İMİCRYL NOVA COMPOMER RENKLİ 20 X", "unit": "ADET"},
+      {"code": "2038", "name": "İMİCRYL NOVA COMPOMER RENKLİ 20 X 0,25 GR.", "unit": "ADET"},
       {"code": "İVC.0006", "name": "İVOCLAR TETRİC N CERAM 2 KOMPOZİT", "unit": "ADET"},
       {"code": "759081", "name": "İVOCLAR TETRİC N POWERFİLL 2 REFİLL", "unit": "ADET"}
     ]
@@ -416,7 +377,8 @@ const DATA = [
       {"code": "DNT11", "name": "IMIDENT TEMP TEMPORARY 1:1", "unit": "ADET"},
       {"code": "ZD19-9173/1294", "name": "KIDS CROWN 5Lİ REFİLL", "unit": "ADET"},
       {"code": "46914", "name": "META BİOMED MD-TEMP GEÇİCİ DOLGU", "unit": "ADET"},
-      {"code": "ZD19-9391", "name": "PERMA CROWN 5 Lİ REFİLL", "unit": "ADET"},
+	  {"code": "000255", "name": "DİATEMP", "unit": "ADET"},
+      {"code": "ZD19-9391", "name": "PERMA CROWN 5 Lİ REFİLL", "unit": "ADET"}
     ]
   },
   {
@@ -425,8 +387,7 @@ const DATA = [
       {"code": "SPG00025", "name": "GUTTA PERCHA POİNTS", "unit": "ADET"},
 	  {"code": "ZD19-9540", "name": "GUTTA PERCHA F", "unit": "ADET"},
       {"code": "SPİ00025", "name": "PAPER POİNTS", "unit": "ADET"},
-	  {"code": "ZD19-9540", "name": "PAPER POİNTS F", "unit": "ADET"},
-	  
+	  {"code": "ZD19-9540", "name": "PAPER POİNTS F", "unit": "ADET"}
     ]
   },
   {
@@ -441,7 +402,6 @@ const DATA = [
       {"code": "H-33014P", "name": "BISCO THERACAL LC TEK TÜP", "unit": "ADET"},
       {"code": "DİA.0127", "name": "CERAFİLL RCS", "unit": "ADET"},
       {"code": "ZIM/033", "name": "DENTAWELL ALVEOGYL", "unit": "ADET"},
-      {"code": "VDW.121803", "name": "DENTSPLY AH PLUS", "unit": "ADET"},
       {"code": "DTR.01.60620112", "name": "DENTSPLY AH-PLUS", "unit": "ADET"},
       {"code": "DTR.01.623451Y", "name": "DENTSPLY DYCAL", "unit": "ADET"},
       {"code": "ZIM/061", "name": "DİADENT DİA ROOT KANAL PATI", "unit": "ADET"},
@@ -468,7 +428,6 @@ const DATA = [
     "items": [
       {"code": "ZIM.334", "name": "APEX LOCATER KABLO", "unit": "ADET"},
       {"code": "ZIM.637", "name": "C FILE KANAL EĞESİ", "unit": "ADET"},
-      {"code": "ZIM/003", "name": "C+FİLE KANAL EĞESİ", "unit": "ADET"},
       {"code": "ZD19-9364", "name": "DENTO İNFUSOR UÇ 20 Lİ", "unit": "ADET"},
       {"code": "MUH.77100", "name": "EDTA SOLUSYON", "unit": "ADET"},
       {"code": "706", "name": "GATES GİLİDEN", "unit": "ADET"},
@@ -481,7 +440,6 @@ const DATA = [
       {"code": "ZD19-9207", "name": "KANAL EĞESİ", "unit": "ADET"},
       {"code": "M46910", "name": "META BİOMED CHELCREAM EDTA JEL", "unit": "ADET"},
       {"code": "GSL25", "name": "PASTE CARRIERS LENTİLO", "unit": "ADET"},
-      {"code": "ZD19-9173/1196", "name": "RAİTO İRRİGASYON İĞNESİ 50 Lİ", "unit": "ADET"},
       {"code": "ZD19-9098", "name": "SCOPE K7 BLUE 6 LI EĞE", "unit": "ADET"},
       {"code": "Y3212", "name": "SCOPE K7 CM 6 LI EĞE", "unit": "ADET"},
       {"code": "Y3211", "name": "SCOPE K7 GOLD 6 LI EĞE", "unit": "ADET"},
@@ -514,9 +472,7 @@ const DATA = [
       {"code": "ZD19-9286", "name": "PERFİT A SİLİKON 1.ÖLÇÜ", "unit": "ADET"},
       {"code": "ZD19-9287", "name": "PERFİT A SİLİKON 2.ÖLÇÜ", "unit": "ADET"},
       {"code": "ZD19-9514", "name": "PERFİT A SİLİKON TAKIM", "unit": "ADET"},
-      {"code": "SKY0021", "name": "PLASTİK ÖLÇÜ KAŞIĞI MAVİ RENK", "unit": "ADET"},
       {"code": "901", "name": "SS WHİTE İMPERSSİON PASTE", "unit": "ADET"},
-      {"code": "ZIM.573", "name": "SSWHİTE İMPRESSİON PASTE", "unit": "ADET"},
       {"code": "KMD.01.001", "name": "YEŞİL ÇUBUK MUM (İMPRESSİON)", "unit": "ADET"},
       {"code": "629", "name": "ZETAPLUS 1. ÖLÇÜ", "unit": "ADET"},
       {"code": "12", "name": "ZETAPLUS TAKIM", "unit": "ADET"},
@@ -524,16 +480,16 @@ const DATA = [
       {"code": "ZIM.257", "name": "ZHERMACK ELİTE HD LIGHT BODY 2.ÖLÇÜ", "unit": "ADET"},
       {"code": "14", "name": "ZHERMACK ORANWASH", "unit": "ADET"},
       {"code": "ZHEC302240", "name": "ZHERMACK TROPICALGIN", "unit": "ADET"},
-      {"code": "28", "name": "ZHERMACK İNDURENT JEL KATALİZOR", "unit": "ADET"},
+      {"code": "28", "name": "ZHERMACK İNDURENT JEL KATALİZÖR", "unit": "ADET"},
       {"code": "SKY0017", "name": "ÖLÇÜ KAŞIĞI", "unit": "ADET"},
       {"code": "VDW.121784", "name": "ÖLÇÜ KAŞIĞI RENKLİ TAKIM", "unit": "ADET"}
     ]
   },
   {
-    "cat": "ALÇI / MUM",
+    "cat": "ALÇİ / MUM",
     "items": [
       {"code": "ZD19-9199", "name": "DENTAL ALÇI 1 KG.", "unit": "ADET"},
-      {"code": "ZD19-9468", "name": "G-CERAM MUM", "unit": "ADET"},
+      {"code": "ZD19-9468", "name": "G-CERAM MUM", "unit": "ADET"}
     ]
   },
   {
@@ -549,7 +505,6 @@ const DATA = [
       {"code": "VDW.121631", "name": "DİSPODENT YENGEÇ MATRİKS BANDI", "unit": "ADET"},
       {"code": "EDT.01.201350", "name": "EDENTA DENTİN PİMİ", "unit": "ADET"},
       {"code": "TPC.00063", "name": "FİBER POST 20Lİ DRİLLİ", "unit": "ADET"},
-      {"code": "ZD19-9173/1222", "name": "FİBER POST 20Lİ DRİLSİZ", "unit": "ADET"},
       {"code": "ZIM.477", "name": "JEFİX PLASTİK KAMA", "unit": "ADET"},
       {"code": "KERR.2181", "name": "KERR SUPERCAP MATRİX MAVİ-YEŞİL", "unit": "ADET"},
       {"code": "ZIM.909", "name": "RACHEL OTOMATRİKS BANDI", "unit": "ADET"},
@@ -576,7 +531,6 @@ const DATA = [
     "cat": "FREZLER (BUR)",
     "items": [
       {"code": "54546", "name": "ANGLDURVA İÇİN TUNGSTEN FREZ", "unit": "ADET"},
-      {"code": "87987", "name": "CANAVAR HARD FREZ", "unit": "ADET"},
       {"code": "C035-104", "name": "CERRAHİ ROND FREZ", "unit": "ADET"},
       {"code": "ZIM.861", "name": "DİA TESSİN ELMAS FREZ", "unit": "ADET"},
       {"code": "ZD19-9080", "name": "ELMAS FREZ", "unit": "ADET"},
@@ -600,11 +554,10 @@ const DATA = [
 	  {"code": "QNTR7MM", "name": "QUEEN DETERTRAJ FIRÇASI 7MM", "unit": "ADET"},
       {"code": "ZIM.988", "name": "HG PORSELEN CİLA LASTİĞİ GRİ ", "unit": "ADET"},
       {"code": "SKY249", "name": "IMICRYL POMZA", "unit": "ADET"},
-      {"code": "40005.100", "name": "KENDA KOMPOZİT LASTİĞİ", "unit": "ADET"},
       {"code": "ZIM.697", "name": "KURARAY TWİST DİA 6 LI", "unit": "ADET"},
       {"code": "MND.100", "name": "MANDREN PIYASEMEN", "unit": "ADET"},
       {"code": "3067", "name": "MİKRODONT KOMPOZİT ZIMPARASI", "unit": "ADET"},
-      {"code": "Y2215", "name": "NAİS KOMPOZİT LASTİĞİ", "unit": "ADET"},
+	  {"code": "ZIM.932", "name": "İTHAL KOMPOZİT LASTİĞİ", "unit": "ADET"},
       {"code": "Y2227", "name": "NAİS TWİST DİA LASTİK 6 LI", "unit": "ADET"},
       {"code": "ZD19-9196", "name": "PAPATYA RONDEL", "unit": "ADET"},
       {"code": "Y2226", "name": "POLİSAJ FIRÇASI SARI 100 LÜ", "unit": "ADET"},
@@ -645,12 +598,10 @@ const DATA = [
       {"code": "87840", "name": "ULTRADENT OPALESCENCE ENDO TEK", "unit": "ADET"},
 	  {"code": "ZIM.899", "name": "1MM SERT PLAK 20Lİ PAKET", "unit": "ADET"},
 	  {"code": "98771", "name": "1.5MM SERT PLAK 15Lİ PAKET", "unit": "ADET"},
-	  {"code": "98771", "name": "1.5MM SERT PLAK 15Lİ PAKET", "unit": "ADET"},
 	  {"code": "ZIM.939", "name": "2MM SERT PLAK 10LU PAKET", "unit": "ADET"},
 	  {"code": "8461", "name": "1MM YUMUŞAK PLAK 20Lİ PAKET", "unit": "ADET"},
 	  {"code": "98772", "name": "1.5MM YUMUŞAK PLAK 15Lİ PAKET", "unit": "ADET"},
-	  {"code": "ZIM.900", "name": "2MM YUMUŞAK PLAK 10LU PAKET", "unit": "ADET"},
-	  
+	  {"code": "ZIM.900", "name": "2MM YUMUŞAK PLAK 10LU PAKET", "unit": "ADET"}
     ]
   },
   {
@@ -797,7 +748,6 @@ const DATA = [
       {"code": "22556", "name": "TORCH", "unit": "ADET"},
       {"code": "9974", "name": "ÇAKMAK GAZI", "unit": "ADET"},
       {"code": "DOC0001", "name": "İSPİRTO OCAĞI", "unit": "ADET"}
-      
     ]
   },
   {
@@ -830,26 +780,17 @@ const DATA = [
     ]
   }
 ];
-const COMPOSITE_CATS = new Set([
-  "KOMPOZİT DOLGU MADDELERİ",
-  "KOMPOZİT DOLGU MADDELERİ - Akışkan (Flowable)"
-]);
-const SHADES = ["A1","A2","A3","A3.5","A4","B1","B2","B3","C1","C2","C3","D2","D3","D4","Bleach","Diğer"];
 
 const catsContainer = document.getElementById('catsContainer');
 const catNav = document.getElementById('catNav');
 let rowCounter = 0;
 
-function specCell(isComposite, extraClass){
-  if(isComposite){
-    let opts = SHADES.map(s=>`<option value="${s}">${s}</option>`).join('');
-    return `<select class="spec ${extraClass}"><option value=""></option>${opts}</select>`;
-  }
+// ARTIK OTOMATİK GENEL RENK LİSTESİ YOK, STANDART DÜZ METİN KUTUSU
+function specCell(extraClass){
   return `<input type="text" class="spec ${extraClass}" placeholder="ör. boy/açı/ton">`;
 }
 
 DATA.forEach((cat, ci) => {
-  const isComposite = COMPOSITE_CATS.has(cat.cat);
   const anchor = 'cat' + ci;
 
   const navA = document.createElement('a');
@@ -861,7 +802,6 @@ DATA.forEach((cat, ci) => {
   section.className = 'cat';
   section.id = anchor;
 
-  // Tablo başlıklarına "Seç" (Sepet) sütunu eklendi
   section.innerHTML = `
     <div class="cat-head"><span>${cat.cat}</span><span class="hint">${cat.items.length} ürün</span></div>
     <table>
@@ -886,14 +826,13 @@ DATA.forEach((cat, ci) => {
     const tr = document.createElement('tr');
     tr.className = 'main-row';
     tr.dataset.search = (item.name + ' ' + item.code).toLocaleLowerCase('tr-TR');
-    const rid = 'r' + (rowCounter++);
     tr.innerHTML = `
       <td style="text-align:center;"><input type="checkbox" class="row-select" style="cursor:pointer; width:16px; height:16px;"></td>
       <td class="code">${item.code}</td>
       <td class="name">${item.name}</td>
       <td class="unit">${item.unit}</td>
       <td><input type="number" min="1" class="qty" data-name="${escAttr(item.name)}"></td>
-      <td>${specCell(isComposite)}</td>
+      <td>${specCell()}</td>
       <td><textarea class="note" rows="1" placeholder=""></textarea></td>
       <td class="actions"><button class="btn add small" title="Bu üründen farklı bir çeşit daha eklemek için">+ Satır Ekle</button></td>
     `;
@@ -901,17 +840,19 @@ DATA.forEach((cat, ci) => {
 
     const addBtn = tr.querySelector('.actions button');
     addBtn.addEventListener('click', () => {
-      addVariantRow(tbody, tr, item, isComposite);
+      addVariantRow(tbody, tr, item);
     });
   });
 
   catsContainer.appendChild(section);
 });
-applyCustomDropdowns();
+
+// Sayfa yüklendiğinde ve dinamik durumlarda özel listeyi uygula
+window.addEventListener('DOMContentLoaded', applyCustomDropdowns);
 
 function escAttr(s){ return s.replace(/"/g,'&quot;'); }
 
-function addVariantRow(tbody, afterRow, item, isComposite){
+function addVariantRow(tbody, afterRow, item){
   const tr = document.createElement('tr');
   tr.className = 'variant-row';
   tr.dataset.search = (item.name + ' ' + item.code).toLocaleLowerCase('tr-TR');
@@ -921,18 +862,17 @@ function addVariantRow(tbody, afterRow, item, isComposite){
     <td class="name"><span class="variant-tag">↳ ek çeşit</span> ${item.name}</td>
     <td class="unit">${item.unit}</td>
     <td><input type="number" min="1" class="qty" data-name="${escAttr(item.name)}"></td>
-    <td>${specCell(isComposite)}</td>
+    <td>${specCell()}</td>
     <td><textarea class="note" rows="1" placeholder=""></textarea></td>
     <td class="actions"><button class="btn remove small">Sil</button></td>
   `;
   afterRow.parentNode.insertBefore(tr, afterRow.nextSibling);
   tr.querySelector('.remove').addEventListener('click', () => {
     tr.remove();
-	applyCustomDropdowns();
+    applyCustomDropdowns();
     updateCount();
   });
   
-  // Alt satır eklendiğinde otomatik olarak sepete eklensin
   const newCheckbox = tr.querySelector('.row-select');
   const newQty = tr.querySelector('.qty');
   newCheckbox.checked = true;
@@ -942,7 +882,6 @@ function addVariantRow(tbody, afterRow, item, isComposite){
   updateCount();
 }
 
-// AKILLI SEPET MANTIĞI: Kutucuk ve Miktar entegrasyonu
 catsContainer.addEventListener('change', (e) => {
   if(e.target.classList.contains('row-select')) {
     const tr = e.target.closest('tr');
@@ -981,7 +920,6 @@ function updateCount(){
   document.getElementById('footerCount').textContent = n;
 }
 
-// SEÇİLENLERİ TEMİZLE BUTONU İŞLEVİ
 function clearSelected() {
   const selectedCheckboxes = document.querySelectorAll('.row-select:checked');
   
@@ -998,11 +936,11 @@ function clearSelected() {
     const tr = checkbox.closest('tr');
     
     if (tr.classList.contains('variant-row') || tr.classList.contains('custom-row')) {
-      tr.remove(); // Ek çeşitse veya katalog dışı manuel ürünse tamamen sil
+      tr.remove();
     } else {
       tr.querySelectorAll('input.qty, .note').forEach(input => input.value = '');
       tr.querySelectorAll('select.spec, input.spec').forEach(input => input.value = '');
-      checkbox.checked = false; // Tiki kaldır
+      checkbox.checked = false;
     }
   });
 
@@ -1031,12 +969,9 @@ function showSummary(){
     const qty = tr.querySelector('.qty').value;
     
     if(isChecked && qty && parseFloat(qty) > 0){
-      // Satırda bir açılır menü (select.spec) var mı kontrol edelim
       const specSelects = tr.querySelectorAll('select.spec');
-      
       if (specSelects.length > 0) {
         specSelects.forEach(sel => {
-          // Eğer select varsa ve değeri boş bırakıldıysa hata ver
           if (!sel.value || sel.value === "") {
             missingSpecError = true;
             if (!firstInvalidRow) firstInvalidRow = tr;
@@ -1047,7 +982,7 @@ function showSummary(){
   });
 
   if (missingSpecError) {
-    alert("⚠️ Lütfen dikkat: Seçtiğiniz ürünlerde eksik bıraktığınız Renk, Boy, Açı veya Numara seçimleri var. Lütfen bu alanları doldurun!");
+    alert("⚠️ Lütfen dikkat: Seçtiğiniz özel ürünlerde eksik bıraktığınız Renk, Boy, Açı veya Numara seçimleri var. Lütfen bu alanları doldurun!");
     if (firstInvalidRow) {
       firstInvalidRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
       firstInvalidRow.style.background = '#ffe6e6'; 
@@ -1055,6 +990,7 @@ function showSummary(){
     }
     return; 
   }
+
   const klinik = document.getElementById('klinikAdi').value || '(belirtilmedi)';
   const tarih = document.getElementById('siparisTarihi').value || '(belirtilmedi)';
   const hazirlayan = document.getElementById('hazirlayan').value || '(belirtilmedi)';
@@ -1075,15 +1011,14 @@ function showSummary(){
       
       if(isChecked && qty && parseFloat(qty) > 0){
         const nameCell = tr.querySelector('.name').textContent.replace('↳ ek çeşit','').trim();
-        const specSelects = tr.querySelectorAll('.spec');
-let spec = "";
-if (specSelects.length > 1) {
-  let val1 = specSelects[0].value || '';
-  let val2 = specSelects[1].value || '';
-  if (val1 || val2) spec = val1 + (val1 && val2 ? ' / ' : '') + val2;
-} else if (specSelects.length === 1) {
-  spec = specSelects[0].value || '';
-}
+        const specElements = tr.querySelectorAll('.spec');
+        let spec = "";
+        if (specElements.length > 1) {
+          let vals = Array.from(specElements).map(el => el.value).filter(v => v !== "");
+          spec = vals.join(' / ');
+        } else if (specElements.length === 1) {
+          spec = specElements[0].value || '';
+        }
         const note = tr.querySelector('.note').value;
         let line = '- ' + nameCell + '  x' + qty;
         if(spec) line += '  [' + spec + ']';
@@ -1097,6 +1032,7 @@ if (specSelects.length > 1) {
       lines.push('');
     }
   });
+
   const customRows = document.querySelectorAll('#customTbody tr.custom-row');
   let customLines = [];
   customRows.forEach(tr => {
@@ -1135,10 +1071,11 @@ function copySummary(){
   ta.select();
   document.execCommand('copy');
 }
+
 function addCustomRow() {
   const tbody = document.getElementById('customTbody');
   const tr = document.createElement('tr');
-  tr.className = 'custom-row'; // Özel satırları ayırt etmek için
+  tr.className = 'custom-row';
   
   tr.innerHTML = `
     <td style="text-align:center;"><input type="checkbox" class="row-select" checked style="cursor:pointer; width:16px; height:16px;"></td>
@@ -1152,10 +1089,13 @@ function addCustomRow() {
   tr.querySelector('.custom-name').focus();
   updateCount();
 }
+
+// SADECE LİSTEDEKİ ÖZEL ÜRÜNLERE DROPDOWN UYGULAYAN AKILLI FONKSİYON
+// SADECE LİSTEDEKİ ÖZEL ÜRÜNLERE DROPDOWN UYGULAYAN AKILLI FONKSİYON
 function applyCustomDropdowns() {
   document.querySelectorAll('tr.main-row, tr.variant-row').forEach(tr => {
     const specTd = tr.querySelector('td:nth-child(6)');
-    if (specTd && specTd.querySelector('.custom-dropdown')) return; 
+    if (!specTd) return;
 
     let code = "";
     const codeCell = tr.querySelector('.code');
@@ -1173,45 +1113,108 @@ function applyCustomDropdowns() {
       }
     }
 
+    // ZIM.932 için ürün adının yanına kararlı görsel önizleme butonu
+    if (code === "ZIM.932") {
+      const nameTd = tr.querySelector('td:nth-child(3)');
+      if (nameTd && !nameTd.querySelector('.hover-trigger')) {
+        nameTd.innerHTML += `
+          <span class="hover-trigger" style="background: #eef2f7; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; border: 1px solid #ccd5e0; color: #333; font-weight: 500; margin-left: 10px; display: inline-block;">
+            🔍 Görseli Göster
+          </span>
+        `;
+        
+        const trigger = nameTd.querySelector('.hover-trigger');
+        
+        let globalBox = document.getElementById('global-hover-box');
+        if (!globalBox) {
+          globalBox = document.createElement('div');
+          globalBox.id = 'global-hover-box';
+          globalBox.style.cssText = 'display: none; position: absolute; width: 320px; background: #fff; padding: 6px; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0px 8px 25px rgba(0,0,0,0.4); z-index: 2147483647; pointer-events: none;';
+          
+          // Bilgisayarda test ediyorsan "GÖRSEL.jpeg" yazar. 
+          // Telefonda her yerde sorunsuz açılması için resmini hızlıca bir siteye yükleyip buraya https://... linkini yapıştırabilirsin.
+          globalBox.innerHTML = '<img src="GÖRSEL.jpeg" style="width: 100%; border-radius: 4px; display: block;" alt="Uç Çeşitleri">';
+          globalBox.innerHTML = '<img src="https://i.hizliresim.com/pkhlbr8.jpeg" style="width: 100%; border-radius: 4px; display: block;" alt="Uç Çeşitleri">';
+          document.body.appendChild(globalBox);
+        }
+
+        trigger.addEventListener('mouseenter', () => {
+          const rect = trigger.getBoundingClientRect();
+          globalBox.style.display = 'block';
+          globalBox.style.top = (window.scrollY + rect.top - globalBox.offsetHeight - 8) + 'px';
+          globalBox.style.left = (window.scrollX + rect.left) + 'px';
+        });
+
+        trigger.addEventListener('mouseleave', () => {
+          globalBox.style.display = 'none';
+        });
+      }
+    }
+
     if (CUSTOM_PRODUCT_OPTIONS[code]) {
       const itemConfig = CUSTOM_PRODUCT_OPTIONS[code];
       
-      if (specTd && (specTd.querySelector('input') || specTd.querySelector('select'))) {
+      // 1. Tekli Dropdown
+      if (itemConfig.type === "single") {
+        let optHtml = itemConfig.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+        specTd.innerHTML = `
+          <select class="spec custom-dropdown">
+            <option value="">Seçiniz...</option>
+            ${optHtml}
+          </select>
+        `;
+      } 
+      // 2. İkili Dropdown (Çift Seçenekli Ürünler)
+      else if (itemConfig.type === "double") {
+        let lengthOpts = itemConfig.lengths.map(l => `<option value="${l}">${l}</option>`).join('');
+        let sizeOpts = itemConfig.sizes.map(s => `<option value="${s}">${s}</option>`).join('');
         
-        // 1. Tekli Dropdown (TOR kodları için)
-        if (itemConfig.type === "single") {
-          let optHtml = itemConfig.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
-          specTd.innerHTML = `
-            <select class="spec custom-dropdown">
-              <option value=""></option>
-              ${optHtml}
+        let firstPlaceholder = (code === "ZIM.320") ? "Bölge Seç" : "Boy / Açı Seç";
+        let secondPlaceholder = (code === "ZIM.320") ? "Renk Seç" : "Numara Seç";
+
+        specTd.innerHTML = `
+          <div style="display: flex; gap: 4px;" class="custom-dropdown">
+            <select class="spec" style="flex: 1;" title="${firstPlaceholder}">
+              <option value="">${firstPlaceholder}</option>
+              ${lengthOpts}
             </select>
-          `;
-        } 
-        // 2. İkili Dropdown (Kanal Eğeleri için Boy ve Numara yan yana)
-        else if (itemConfig.type === "double") {
-          let lengthOpts = itemConfig.lengths.map(l => `<option value="${l}">${l}</option>`).join('');
-          let sizeOpts = itemConfig.sizes.map(s => `<option value="${s}">${s}</option>`).join('');
-          
-          specTd.innerHTML = `
-            <div style="display: flex; gap: 4px;" class="custom-dropdown">
-              <select class="spec" style="flex: 1;" title="Boy / Açı">
-                <option value="">Boy Seç</option>
-                ${lengthOpts}
-              </select>
-              <select class="spec" style="flex: 1;" title="Numara">
-                <option value="">No Seç</option>
-                ${sizeOpts}
-              </select>
-            </div>
-          `;
-        }
+            <select class="spec" style="flex: 1;" title="${secondPlaceholder}">
+              <option value="">${secondPlaceholder}</option>
+              ${sizeOpts}
+            </select>
+          </div>
+        `;
+      }
+      // 3. Üçlü Dropdown (ZD19-9207 Kanal Eğesi İçin)
+      else if (itemConfig.type === "triple") {
+        let typeOpts = itemConfig.types.map(t => `<option value="${t}">${t}</option>`).join('');
+        let lengthOpts = itemConfig.lengths.map(l => `<option value="${l}">${l}</option>`).join('');
+        let sizeOpts = itemConfig.sizes.map(s => `<option value="${s}">${s}</option>`).join('');
+
+        specTd.innerHTML = `
+          <div style="display: flex; gap: 3px;" class="custom-dropdown">
+            <select class="spec" style="flex: 1;" title="Tip Seç">
+              <option value="">Tip</option>
+              ${typeOpts}
+            </select>
+            <select class="spec" style="flex: 1;" title="Boy Seç">
+              <option value="">Boy</option>
+              ${lengthOpts}
+            </select>
+            <select class="spec" style="flex: 1;" title="Boyut Seç">
+              <option value="">Boyut</option>
+              ${sizeOpts}
+            </select>
+          </div>
+        `;
+      }
+    } else {
+      if (!specTd.querySelector('input.spec')) {
+        specTd.innerHTML = `<input type="text" class="spec" placeholder="ör. boy/açı/ton">`;
       }
     }
   });
 }
-
-// Sayfa yüklendiğinde çalıştır
 </script>
 
 </body>

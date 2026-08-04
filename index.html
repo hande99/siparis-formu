@@ -84,7 +84,7 @@
   tbody tr.variant-row{background:var(--variant-bg);}
   tbody tr.variant-row:hover{background:#fbe6d5;}
   td.code{color:var(--muted); font-size:11.5px; white-space:nowrap;}
-  td.name{width: 270px; max-width: 280px; word-break: break-word;}
+  td.name{width: 280px; max-width: 290px; word-break: break-word;}
   td.name .variant-tag{font-size:10.5px; color:var(--accent); font-weight:700;}
   td.unit{color:var(--muted); font-size:12px; white-space:nowrap;}
   input.qty, input.spec, textarea.note {
@@ -161,7 +161,6 @@
   <div class="toolbar">
     <input type="search" id="searchBox" placeholder="Ürün ara... (örn. kompozit, gutta, eldiven)">
 	<button class="btn add" onclick="downloadExcel()">📥 Excel İndir</button>
-    <button class="btn secondary" onclick="printCleanPDF()">🖨️ Yazdır / PDF</button>
     <button class="btn secondary" onclick="showSummary()">📋 Sipariş Özetini Göster</button>
     <button class="btn remove" onclick="clearSelected()">☑ Seçilenleri Temizle</button>
 	<button class="btn" style="background: #25d366; color: white;" onclick="shareOnWhatsApp()">💬 WhatsApp ile Paylaş</button>
@@ -551,6 +550,7 @@ const DATA = [
       {"code": "C035-104", "name": "CERRAHİ ROND FREZ", "unit": "ADET"},
       {"code": "ZIM.861", "name": "DİA TESSİN ELMAS FREZ", "unit": "ADET"},
       {"code": "ZD19-9080", "name": "ELMAS FREZ", "unit": "ADET"},
+	  {"code": "BOS0396", "name": "BOSPHORUS ELMAS  FREZ", "unit": "ADET"},
       {"code": "ZD19-9682", "name": "ELMAS SEPARE", "unit": "ADET"},
       {"code": "ZIM.987", "name": "HG CANAVAR HARD FEZ", "unit": "ADET"},
       {"code": "ZIM.986", "name": "HG ÇELİK FREZ", "unit": "ADET"},
@@ -1027,6 +1027,28 @@ function applyCustomDropdowns() {
           break;
         }
         prevRow = prevRow.previousElementSibling;
+      }
+    }
+	// BOS0396 için PDF katalog butonu
+    if (code === "BOS0396") {
+      const nameTd = tr.querySelector('td:nth-child(3)');
+      if (nameTd && !nameTd.querySelector('.pdf-trigger')) {
+        nameTd.innerHTML += `
+          <a href="https://drive.google.com/file/d/1pRManpy5YYGS6XtMOHS41xayAZlksoUI/preview" target="_blank" class="pdf-trigger" style="background: #eef2f7; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; border: 1px solid #ccd5e0; color: #1f3a5c; font-weight: 500; margin-left: 10px; text-decoration: none; display: inline-block;">
+            📄 PDF Katalog
+          </a>
+        `;
+      }
+    }
+	// ZD19-9080 için PDF katalog butonu
+    if (code === "ZD19-9080") {
+      const nameTd = tr.querySelector('td:nth-child(3)');
+      if (nameTd && !nameTd.querySelector('.pdf-trigger')) {
+        nameTd.innerHTML += `
+          <a href="https://drive.google.com/file/d/1NnIZKufPIIRGsSyNt4kDuIbAfyZRqCla/preview" target="_blank" class="pdf-trigger" style="background: #eef2f7; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; border: 1px solid #ccd5e0; color: #1f3a5c; font-weight: 500; margin-left: 10px; text-decoration: none; display: inline-block;">
+            📄 PDF Katalog
+          </a>
+        `;
       }
     }
 

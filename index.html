@@ -116,23 +116,25 @@
   #copyBox.show{display:flex;}
   #copyBox .panel{background:#fff; border-radius:10px; padding:18px; width:92%; max-width:640px; max-height:80vh; display:flex; flex-direction:column;}
   #copyBox textarea{
-    flex:1; 
-    min-height:300px; 
-    font-family:monospace; 
-    font-size:12.5px; 
-    padding:10px; 
-    border:1px solid var(--line); 
-    border-radius:6px;
-    resize: none; 
-    outline: none;
+    flex:1; min-height:300px; font-family:monospace; font-size:12.5px; padding:10px; border:1px solid var(--line); border-radius:6px; resize: none; outline: none;
   }
   #copyBox .panel-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:10px;}
 
-  @media print{
-    .toolbar, nav.catnav, footer.summary, td.actions, #copyBox{display:none !important;}
-    body{background:#fff;}
-    section.cat{page-break-inside:avoid;}
-    .cat-head{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  /* --- PROFESYONEL YAZDIRMA / PDF STİLİ --- */
+  @media print {
+    .toolbar, nav.catnav, footer.summary, td.actions, #copyBox, button, .hover-trigger {display:none !important;}
+    body{background:#fff; color:#000; font-size:11pt;}
+    .wrap{max-width:100% !important; padding:0 !important; margin:0 !important;}
+    header.hero{background:none !important; color:#000 !important; padding:5px 0 !important; border-bottom:2px solid #000; border-radius:0 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    header.hero h1{font-size:16pt !important; color:#000 !important;}
+    header.hero p{color:#444 !important;}
+    .meta{border:1px solid #000 !important; padding:8px !important; margin-bottom:10px !important;}
+    .meta input{border:none !important; background:none !important; font-weight:bold;}
+    table{width:100% !important; border:1px solid #000 !important; page-break-inside:auto;}
+    tr{page-break-inside:avoid; page-break-after:auto;}
+    thead th{background:#eee !important; color:#000 !important; border-bottom:1px solid #000 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    tbody td{border-bottom:1px solid #ccc !important; padding:4px 6px !important;}
+    input.qty, input.spec, select.spec, textarea.note{border:none !important; background:none !important; padding:0 !important;}
   }
   .hidden-row{display:none !important;}
 </style>
@@ -155,9 +157,11 @@
 
   <div class="toolbar">
     <input type="search" id="searchBox" placeholder="Ürün ara... (örn. kompozit, gutta, eldiven)">
-    <button class="btn secondary" onclick="window.print()">🖨️ Yazdır / PDF</button>
+	<button class="btn add" onclick="downloadExcel()">📥 Excel İndir</button>
+    <button class="btn secondary" onclick="printCleanPDF()">🖨️ Yazdır / PDF</button>
     <button class="btn secondary" onclick="showSummary()">📋 Sipariş Özetini Göster</button>
     <button class="btn remove" onclick="clearSelected()">☑ Seçilenleri Temizle</button>
+	<button class="btn" style="background: #25d366; color: white;" onclick="shareOnWhatsApp()">💬 WhatsApp ile Paylaş</button>
     <span class="count-pill" id="countPill">0 kalem seçildi</span>
   </div>
 
@@ -192,7 +196,7 @@
       <div class="label">seçilen kalem</div>
     </div>
     <button class="btn" onclick="showSummary()">Sipariş Özetini Göster / Kopyala</button>
-    <button class="btn secondary" onclick="window.print()">Yazdır / PDF</button>
+    <button class="btn secondary" onclick="printCleanPDF()">Yazdır / PDF</button>
   </footer>
 </div>
 
@@ -232,6 +236,7 @@ const CUSTOM_PRODUCT_OPTIONS = {
   "ZIM.914" :{ type: "single", options: ["MEDİUM DENTİN","UNİVERSAL DENTİN" ]},
   "ZIM.328": { type: "single", options: ["A1", "A2", "A3", "A3.5", "A4", "AO2", "AO3", "B1", "B2", "C2", "TW"]},
   "ZIM.932": { type: "single", options: ["1", "2", "3", "4", "5", "6"] },
+  "Y2221" : { type: "single", options: ["A1B", "A2B", "A3B" , "A3.5B", "A4B","B3B","BL" ] },
   "ZIM.320": { 
     type: "double", 
     lengths: ["ÖN", "ARKA"], 
@@ -727,7 +732,7 @@ const DATA = [
     "cat": "PAMUK / GAZLI BEZ / TEK KULLANIMLIK SARF",
     "items": [
       {"code": "VDW.121672", "name": "HG DENTAL 2 NO RULO PAMUK", "unit": "ADET"},
-      {"code": "ZIM.353", "name": "QARTZ TEK KULLANIMLIK 200LÜK", "unit": "ADET"},
+      {"code": "ZIM.353", "name": "QARTZ 200LÜK POLİSAJ PATI", "unit": "ADET"},
       {"code": "2281149", "name": "RACHEL SAKŞIN", "unit": "ADET"},
       {"code": "SPC00001", "name": "SPANÇ 500 LÜ", "unit": "ADET"},
       {"code": "SUD0001", "name": "SUDEMED CERRAHİ SAKŞIN", "unit": "ADET"}
@@ -1214,6 +1219,299 @@ function applyCustomDropdowns() {
       }
     }
   });
+}
+function downloadExcel(){
+  let missingSpecError = false;
+  let firstInvalidRow = null;
+
+  document.querySelectorAll('section.cat tbody tr').forEach(tr => {
+    const isChecked = tr.querySelector('.row-select').checked;
+    const qty = tr.querySelector('.qty').value;
+    
+    if(isChecked && qty && parseFloat(qty) > 0){
+      const specSelects = tr.querySelectorAll('select.spec');
+      if (specSelects.length > 0) {
+        specSelects.forEach(sel => {
+          if (!sel.value || sel.value === "") {
+            missingSpecError = true;
+            if (!firstInvalidRow) firstInvalidRow = tr;
+          }
+        });
+      }
+    }
+  });
+
+  if (missingSpecError) {
+    alert("⚠️ Lütfen dikkat: Seçtiğiniz özel ürünlerde eksik bıraktığınız Renk, Boy, Açı veya Numara seçimleri var. Lütfen bu alanları doldurun!");
+    if (firstInvalidRow) {
+      firstInvalidRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstInvalidRow.style.background = '#ffe6e6'; 
+      setTimeout(() => { firstInvalidRow.style.background = ''; }, 2000);
+    }
+    return; 
+  }
+
+  const klinik = document.getElementById('klinikAdi').value || 'Klinik';
+  const tarih = document.getElementById('siparisTarihi').value || '';
+  const hazirlayan = document.getElementById('hazirlayan').value || '';
+
+  // Tablo başlıklarından kategori çıkarıldı
+  let html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head><meta charset="UTF-8"></head>
+    <body>
+      <h3>SİPARİŞ FORMU</h3>
+      <p><b>Klinik:</b> ${klinik} | <b>Tarih:</b> ${tarih} | <b>Hazırlayan:</b> ${hazirlayan}</p>
+      <table border="1">
+        <tr style="background-color: #1f3a5c; color: white;">
+          <th>Ürün Kodu</th>
+          <th>Ürün Adı</th>
+          <th>Birim</th>
+          <th>Miktar</th>
+          <th>Özellik / Tip / Renk</th>
+          <th>Not</th>
+        </tr>
+  `;
+
+  let hasProduct = false;
+
+  document.querySelectorAll('section.cat').forEach(sec => {
+    sec.querySelectorAll('tbody tr').forEach(tr => {
+      const isChecked = tr.querySelector('.row-select').checked;
+      const qty = tr.querySelector('.qty').value;
+      
+      if(isChecked && qty && parseFloat(qty) > 0){
+        hasProduct = true;
+        const codeCell = tr.querySelector('.code') ? tr.querySelector('.code').textContent.trim() : '-';
+        const nameCell = tr.querySelector('.name').textContent.replace('↳ ek çeşit','').trim();
+        const unit = tr.querySelector('.unit').textContent.trim();
+        const specElements = tr.querySelectorAll('.spec');
+        let spec = "";
+        if (specElements.length > 1) {
+          let vals = Array.from(specElements).map(el => el.value).filter(v => v !== "");
+          spec = vals.join(' / ');
+        } else if (specElements.length === 1) {
+          spec = specElements[0].value || '';
+        }
+        const note = tr.querySelector('.note').value.trim() || '';
+        
+        html += `<tr>
+          <td>${codeCell}</td>
+          <td>${nameCell}</td>
+          <td>${unit}</td>
+          <td>${qty}</td>
+          <td>${spec}</td>
+          <td>${note}</td>
+        </tr>`;
+      }
+    });
+  });
+
+  const customRows = document.querySelectorAll('#customTbody tr.custom-row');
+  customRows.forEach(tr => {
+    const isChecked = tr.querySelector('.row-select').checked;
+    const qty = tr.querySelector('.qty').value;
+    const name = document.querySelector('.custom-name') ? tr.querySelector('.custom-name').value.trim() : '';
+    
+    if(isChecked && qty && parseFloat(qty) > 0 && name){
+      hasProduct = true;
+      const note = tr.querySelector('.note').value.trim() || '';
+      html += `<tr>
+        <td>ÖZEL</td>
+        <td>${name}</td>
+        <td>ADET</td>
+        <td>${qty}</td>
+        <td>-</td>
+        <td>${note}</td>
+      </tr>`;
+    }
+  });
+
+  if (!hasProduct) {
+    alert("Henüz miktar girilen veya seçilen bir ürün yok!");
+    return;
+  }
+
+  html += `</table></body></html>`;
+
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `Siparis_${klinik.replace(/[^a-zA-Z0-9]/g, '_')}_${tarih || 'Form'}.xls`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+function shareOnWhatsApp(){
+  // Önce eksik spec seçimi var mı kontrol edelim
+  let missingSpecError = false;
+  let firstInvalidRow = null;
+
+  document.querySelectorAll('section.cat tbody tr').forEach(tr => {
+    const isChecked = tr.querySelector('.row-select').checked;
+    const qty = tr.querySelector('.qty').value;
+    
+    if(isChecked && qty && parseFloat(qty) > 0){
+      const specSelects = tr.querySelectorAll('select.spec');
+      if (specSelects.length > 0) {
+        specSelects.forEach(sel => {
+          if (!sel.value || sel.value === "") {
+            missingSpecError = true;
+            if (!firstInvalidRow) firstInvalidRow = tr;
+          }
+        });
+      }
+    }
+  });
+
+  if (missingSpecError) {
+    alert("⚠️ Lütfen dikkat: Seçtiğiniz özel ürünlerde eksik bıraktığınız Renk, Boy, Açı veya Numara seçimleri var. Lütfen bu alanları doldurun!");
+    if (firstInvalidRow) {
+      firstInvalidRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstInvalidRow.style.background = '#ffe6e6'; 
+      setTimeout(() => { firstInvalidRow.style.background = ''; }, 2000);
+    }
+    return; 
+  }
+
+  const klinik = document.getElementById('klinikAdi').value || '(belirtilmedi)';
+  const tarih = document.getElementById('siparisTarihi').value || '(belirtilmedi)';
+  const hazirlayan = document.getElementById('hazirlayan').value || '(belirtilmedi)';
+
+  let lines = [];
+  lines.push('📋 *SİPARİŞ FORMU*');
+  lines.push('🏥 Klinik: ' + klinik);
+  lines.push('📅 Tarih: ' + tarih);
+  lines.push('👤 Hazırlayan: ' + hazirlayan);
+  lines.push('----------------------------------------');
+
+  let hasProduct = false;
+
+  document.querySelectorAll('section.cat').forEach(sec => {
+    const catName = sec.querySelector('.cat-head span').textContent;
+    let catLines = [];
+    sec.querySelectorAll('tbody tr').forEach(tr => {
+      const isChecked = tr.querySelector('.row-select').checked;
+      const qty = tr.querySelector('.qty').value;
+      
+      if(isChecked && qty && parseFloat(qty) > 0){
+        hasProduct = true;
+        const nameCell = tr.querySelector('.name').textContent.replace('↳ ek çeşit','').trim();
+        const specElements = tr.querySelectorAll('.spec');
+        let spec = "";
+        if (specElements.length > 1) {
+          let vals = Array.from(specElements).map(el => el.value).filter(v => v !== "");
+          spec = vals.join(' / ');
+        } else if (specElements.length === 1) {
+          spec = specElements[0].value || '';
+        }
+        const note = tr.querySelector('.note').value.trim();
+        let line = '• ' + nameCell + ' *x' + qty + '*';
+        if(spec) line += ' _[' + spec + ']_';
+        if(note) line += ' (' + note + ')';
+        catLines.push(line);
+      }
+    });
+    if(catLines.length){
+      lines.push('\n📂 *' + catName + '*');
+      lines = lines.concat(catLines);
+    }
+  });
+
+  const customRows = document.querySelectorAll('#customTbody tr.custom-row');
+  let customLines = [];
+  customRows.forEach(tr => {
+    const isChecked = tr.querySelector('.row-select').checked;
+    const qty = tr.querySelector('.qty').value;
+    const name = tr.querySelector('.custom-name').value.trim();
+    
+    if(isChecked && qty && parseFloat(qty) > 0 && name){
+      hasProduct = true;
+      const note = tr.querySelector('.note').value.trim();
+      let line = '• ' + name + ' *x' + qty + '*';
+      if(note) line += ' (' + note + ')';
+      customLines.push(line);
+    }
+  });
+
+  if(customLines.length){
+    lines.push('\n📂 *KATALOG DIŞI / HARİCİ SİPARİŞLER*');
+    lines = lines.concat(customLines);
+  }
+
+  if(!hasProduct){
+    alert("Paylaşılacak ürün seçilmedi veya miktar girilmedi!");
+    return;
+  }
+
+  const textMessage = lines.join('\n');
+  
+  // Metni panoya kopyala (WhatsApp bazen direkt uzun metin alamazsa yedek olarak panoda kalsın diye)
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(textMessage);
+  }
+
+  // WhatsApp paylaşım linkini tetikle
+  const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(textMessage)}`;
+  window.open(whatsappUrl, '_blank');
+}
+function printCleanPDF() {
+  let filledCount = 0;
+  
+  document.querySelectorAll('section.cat').forEach(sec => {
+    let secHasVisible = false;
+    sec.querySelectorAll('tbody tr').forEach(tr => {
+      const isChecked = tr.querySelector('.row-select').checked;
+      const qty = tr.querySelector('.qty').value;
+      const isFilled = isChecked && qty && parseFloat(qty) > 0;
+      
+      if (isFilled) {
+        tr.style.display = '';
+        secHasVisible = true;
+        filledCount++;
+      } else {
+        tr.style.display = 'none';
+      }
+    });
+    sec.style.display = secHasVisible ? 'block' : 'none';
+  });
+
+  const customRows = document.querySelectorAll('#customTbody tr.custom-row');
+  let customHasVisible = false;
+  customRows.forEach(tr => {
+    const isChecked = tr.querySelector('.row-select').checked;
+    const qty = tr.querySelector('.qty').value;
+    const name = tr.querySelector('.custom-name').value.trim();
+    if (isChecked && qty && parseFloat(qty) > 0 && name) {
+      tr.style.display = '';
+      customHasVisible = true;
+      filledCount++;
+    } else {
+      tr.style.display = 'none';
+    }
+  });
+  
+  const customCatSec = document.getElementById('customCat');
+  if (customCatSec) {
+    customCatSec.style.display = customHasVisible ? 'block' : 'none';
+  }
+
+  if (filledCount === 0) {
+    alert("Yazdırılacak miktar girilmiş ürün bulunamadı! Lütfen önce sipariş miktarını girin.");
+    resetViewAfterPrint();
+    return;
+  }
+
+  window.print();
+  setTimeout(resetViewAfterPrint, 1000);
+}
+
+function resetViewAfterPrint() {
+  document.querySelectorAll('section.cat, section.cat tbody tr, #customTbody tr.custom-row').forEach(el => {
+    el.style.display = '';
+  });
+  const customCatSec = document.getElementById('customCat');
+  if (customCatSec) customCatSec.style.display = 'block';
 }
 </script>
 

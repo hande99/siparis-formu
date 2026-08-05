@@ -1444,7 +1444,8 @@ function showSummary(){
       currentCat = i.category;
       lines.push('🔹 ' + currentCat);
     }
-    let line = '  • ' + i.name + ' x' + i.qty + ' (' + i.unit + ')';
+    let cleanName = i.name.replace(/📄.*|🔍.*/g, '').trim();
+    let line = '  • ' + cleanName + ' x' + i.qty + ' (' + i.unit + ')';
     if(i.spec && i.spec !== '-') line += ' [' + i.spec + ']';
     if(i.note) line += ' (' + i.note + ')';
     lines.push(line);

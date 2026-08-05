@@ -1366,6 +1366,9 @@ function downloadExcel(){
 
   // Telefonların doğrudan Excel ile açabileceği gerçek .xlsx dosyası olarak indir
   XLSX.writeFile(wb, `Siparis_${data.klinik.replace(/[^a-zA-Z0-9]/g, '_')}_${data.tarih || 'Form'}.xlsx`);
+  document.body.removeChild(link);
+
+}
 
 // 3. WHATSAPP İLE PAYLAŞ BUTONU ÇALIŞANI
 function shareOnWhatsApp(){

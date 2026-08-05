@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <meta charset="UTF-8">
 <title>Aylık Malzeme Sipariş Formu</title>
 <style>
@@ -1346,43 +1347,25 @@ function downloadExcel(){
     return;
   }
 
-  let html = `
-    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-    <head><meta charset="UTF-8"></head>
-    <body>
-      <h3>SİPARİŞ FORMU</h3>
-      <p><b>Klinik:</b> ${data.klinik} | <b>Tarih:</b> ${data.tarih} | <b>Hazırlayan:</b> ${data.hazirlayan}</p>
-      <table border="1">
-        <tr style="background-color: #1f3a5c; color: white;">
-          <th>Ürün Kodu</th>
-          <th>Ürün Adı</th>
-          <th>Miktar</th>
-          <th>Birim</th>
-          <th>Özellik / Tip / Renk</th>
-          <th>Not</th>
-        </tr>`;
+  // Excel için verileri hazırlıyoruz
+  let ws_data = [
+    ["SİPARİŞ FORMU"],
+    ["Klinik:", data.klinik, "Tarih:", data.tarih, "Hazırlayan:", data.hazirlayan],
+    [],
+    ["Ürün Kodu", "Ürün Adı", "Miktar", "Birim", "Özellik / Tip / Renk", "Not"]
+  ];
 
+  // Ürünleri tek tek ekliyoruz
   data.items.forEach(i => {
-    html += `<tr>
-      <td>${i.code}</td>
-      <td>${i.name}</td>
-      <td>${i.qty}</td>
-      <td>${i.unit}</td>
-      <td>${i.spec}</td>
-      <td>${i.note}</td>
-    </tr>`;
+    ws_data.push([i.code, i.name, i.qty, i.unit, i.spec, i.note]);
   });
 
-  html += `</table></body></html>`;
+  const wb = XLSX.utils.book_new();
+  const wsSheet = XLSX.utils.aoa_to_sheet(ws_data);
+  XLSX.utils.book_append_sheet(wb, wsSheet, "Siparis");
 
-  const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `Siparis_${data.klinik.replace(/[^a-zA-Z0-9]/g, '_')}_${data.tarih || 'Form'}.html`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
+  // Telefonların doğrudan Excel ile açabileceği gerçek .xlsx dosyası olarak indir
+  XLSX.writeFile(wb, `Siparis_${data.klinik.replace(/[^a-zA-Z0-9]/g, '_')}_${data.tarih || 'Form'}.xlsx`);
 
 // 3. WHATSAPP İLE PAYLAŞ BUTONU ÇALIŞANI
 function shareOnWhatsApp(){
